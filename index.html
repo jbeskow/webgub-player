@@ -234,6 +234,7 @@
   <h1>GUB Player</h1>
   <button class="btn" id="open-gub-btn">Open .gub…</button>
   <button class="btn" id="open-dat-btn" disabled>Open .dat…</button>
+  <button class="btn" id="open-wav-btn" disabled>Open .wav…</button>
   <span id="status">Drag &amp; drop a .gub file to start</span>
 </div>
 
@@ -279,6 +280,7 @@
 <!-- Hidden file inputs -->
 <input type="file" id="file-gub" accept=".gub" style="display:none">
 <input type="file" id="file-dat" accept=".dat" style="display:none">
+<input type="file" id="file-wav" accept=".wav,audio/*" style="display:none">
 
 <!-- Prevent default drag-and-drop file navigation before anything else -->
 <script>

@@ -23,7 +23,7 @@ class DatParser {
     // First 2 bytes = -(width) in big-endian
     const widthNeg = view.getInt16(0, false); // big-endian
     const width = -widthNeg;
-    if (width <= 0 || width > 64) {
+    if (width <= 0 || width > 512) {
       throw new Error(`DAT: bad width: ${widthNeg}`);
     }
 
