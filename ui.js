@@ -31,17 +31,17 @@ let isPlaying     = false;
 let audioCtx    = null;
 let audioBuffer = null;
 let audioSource = null;
-let audioOffset = 0;      // seconds into the audio when playback last started/paused
+let audioOffset = 0;   // seconds into audio at last play/pause
 
 function ensureAudioCtx() {
   if (!audioCtx) audioCtx = new AudioContext();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 
 function audioPlay(offsetSec) {
   if (!audioBuffer) return;
   ensureAudioCtx();
   audioStop();
-  if (audioCtx.state === 'suspended') audioCtx.resume();
   audioSource = audioCtx.createBufferSource();
   audioSource.buffer = audioBuffer;
   audioSource.connect(audioCtx.destination);
@@ -59,23 +59,18 @@ function audioStop() {
 }
 
 function audioPause() {
-  if (!audioCtx || !audioSource) return;
-  // Record how far we got before pausing
-  audioOffset += audioCtx.currentTime - (audioCtx.currentTime - (audioCtx.currentTime - audioCtx.currentTime));
-  // Simpler: recalculate from renderer frame position
-  audioOffset = renderer.playFrame / (renderer.datAnim?.framerate ?? 100);
+  // Snapshot current position before stopping
+  audioOffset = renderer.datAnim
+    ? renderer.playFrame / renderer.datAnim.framerate
+    : (audioCtx ? audioOffset + (audioCtx.currentTime - (audioSource ? audioCtx.currentTime - audioOffset : audioCtx.currentTime)) : 0);
   audioStop();
-}
-
-function audioSeek(sec) {
-  audioOffset = sec;
-  if (isPlaying) audioPlay(sec);
 }
 
 function loadWav(arrayBuffer) {
   ensureAudioCtx();
   audioCtx.decodeAudioData(arrayBuffer).then(buf => {
     audioBuffer = buf;
+    showTransport();
     setStatus(`WAV loaded – ${buf.duration.toFixed(1)} s`);
   }).catch(err => {
     setStatus('WAV decode error: ' + err.message, true);
@@ -117,24 +112,65 @@ function loadDat(buf) {
   totalFrames = renderer.loadDat(datData);
   timeline.max   = Math.max(0, totalFrames - 1);
   timeline.value = 0;
+  timeline.style.display = '';
   timeLabel.textContent = `0 / ${totalFrames} frames`;
-  transport.classList.remove('hidden');
+  showTransport();
 
   renderer.onFrameUpdate = (f, total) => {
     timeline.value = f;
     timeLabel.textContent = `${f} / ${total} frames`;
     syncSlidersFromParams();
-    // Auto-stop when animation ends
-    if (f >= total - 1) {
-      isPlaying = false;
-      playBtn.textContent = '▶ Play';
-      playBtn.classList.remove('active');
-      audioStop();
-    }
+    if (f >= total - 1) stopPlayback();
   };
   renderer.onParamsUpdated = syncSlidersFromParams;
 
   setStatus(`DAT loaded – ${totalFrames} frames @ ${datData.framerate} fps`);
+}
+
+// ── Transport visibility ───────────────────────────────────────────────────
+
+function showTransport() {
+  transport.classList.remove('hidden');
+  // Hide timeline if no DAT loaded yet
+  timeline.style.display = renderer.datAnim ? '' : 'none';
+  timeLabel.style.display = renderer.datAnim ? '' : 'none';
+}
+
+// ── Playback control ───────────────────────────────────────────────────────
+
+function startPlayback() {
+  isPlaying = true;
+  playBtn.textContent = '⏸ Pause';
+  playBtn.classList.add('active');
+
+  const offsetSec = renderer.datAnim
+    ? renderer.playFrame / renderer.datAnim.framerate
+    : audioOffset;
+
+  if (renderer.datAnim) renderer.play();
+  audioPlay(offsetSec);
+}
+
+function pausePlayback() {
+  isPlaying = false;
+  playBtn.textContent = '▶ Play';
+  playBtn.classList.remove('active');
+  // Snapshot audio position before stopping
+  if (renderer.datAnim) {
+    audioOffset = renderer.playFrame / renderer.datAnim.framerate;
+  } else if (audioCtx && audioSource) {
+    audioOffset = Math.min(audioOffset + audioCtx.currentTime, audioBuffer?.duration ?? 0);
+  }
+  renderer.pause();
+  audioStop();
+}
+
+function stopPlayback() {
+  isPlaying = false;
+  playBtn.textContent = '▶ Play';
+  playBtn.classList.remove('active');
+  renderer.pause();
+  audioStop();
 }
 
 // ── Build parameter sliders ────────────────────────────────────────────────
@@ -221,35 +257,16 @@ resetBtn.addEventListener('click', () => {
 // ── Transport controls ─────────────────────────────────────────────────────
 
 playBtn.addEventListener('click', () => {
-  if (!renderer.datAnim) return;
-  isPlaying = !isPlaying;
-  if (isPlaying) {
-    const offsetSec = renderer.playFrame / renderer.datAnim.framerate;
-    renderer.play();
-    audioPlay(offsetSec);
-    playBtn.textContent = '⏸ Pause';
-    playBtn.classList.add('active');
-  } else {
-    renderer.pause();
-    audioPause();
-    playBtn.textContent = '▶ Play';
-    playBtn.classList.remove('active');
-  }
+  if (!renderer.datAnim && !audioBuffer) return;
+  if (isPlaying) pausePlayback(); else startPlayback();
 });
 
 timeline.addEventListener('input', () => {
-  const wasPlaying = isPlaying;
-  if (isPlaying) {
-    renderer.pause();
-    audioStop();
-    isPlaying = false;
-    playBtn.textContent = '▶ Play';
-    playBtn.classList.remove('active');
-  }
+  if (isPlaying) stopPlayback();
   const f = parseInt(timeline.value);
   renderer.seekFrame(f);
   timeLabel.textContent = `${f} / ${totalFrames} frames`;
-  if (renderer.datAnim) audioSeek(f / renderer.datAnim.framerate);
+  if (renderer.datAnim) audioOffset = f / renderer.datAnim.framerate;
 });
 
 // ── File pickers ───────────────────────────────────────────────────────────
