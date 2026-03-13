@@ -725,7 +725,7 @@ class GubRenderer {
     for (const mapping of this.datMap) {
       const pos = paramNames.indexOf(mapping.datName);
       if (pos < 0) continue;
-      const value = frame.vals[pos] / 100;
+      const value = frame.vals[pos] * mapping.scale;
       // Apply to all def_surfaces whose name matches nodeName
       for (const entry of this.defSurfaces) {
         if (!entry.isMirror && entry.defNode.name === mapping.nodeName) {
