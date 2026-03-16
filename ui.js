@@ -131,6 +131,7 @@ function loadDat(buf) {
 
 function showTransport() {
   transport.classList.remove('hidden');
+  document.body.classList.add('transport-visible');
   // Hide timeline if no DAT loaded yet
   timeline.style.display = renderer.datAnim ? '' : 'none';
   timeLabel.style.display = renderer.datAnim ? '' : 'none';
