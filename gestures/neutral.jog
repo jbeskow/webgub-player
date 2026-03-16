@@ -1,0 +1,12 @@
+return {
+ name neutral
+ framerate 25
+ hotspot 0.05
+ header {{0 {face parameter jaw_rotation} {1 0}} {1 {face parameter f_tuck} {1 0}} {2 {face parameter lip_round} {1 0}} {3 {face parameter lip_tight} {1 0}} {4 {face parameter apex} {1 0}} {5 {face parameter mth_width} {1 0}} {6 {face parameter protrusion} {1 0}} {7 {face parameter brow_raise} {1 0}} {8 {face parameter brow_frown} {1 0}} {9 {gube parameter z_rotation} {1 0}} {10 {gube parameter y_rotation} {1 0}} {11 {gube parameter x_rotation} {1 0}} {12 {eye parameter z_rotation} {1 0}} {13 {eye parameter y_rotation} {1 0}} {14 {face parameter eyelid} {1 0}} {15 {face parameter smile} {1 0}}}
+ data {
+  {0.0 0.0 0.0 0.0 0.0 0.75 0.0 0.1 0.3 0.5 0.55 0.5 0.5 0.52 0.02 0.09}
+  {0.0 0.0 0.0 0.0 0.0 0.75 0.0 0.1 0.3 0.5 0.55 0.5 0.5 0.52 0.02 0.09}
+  {0.0 0.0 0.0 0.0 0.0 0.75 0.0 0.1 0.3 0.5 0.55 0.5 0.5 0.52 0.02 0.09}
+  {0.0 0.0 0.0 0.0 0.0 0.75 0.0 0.1 0.3 0.5 0.55 0.5 0.5 0.52 0.02 0.09}
+ }
+}

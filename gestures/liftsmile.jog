@@ -1,0 +1,17 @@
+return {
+ name liftsmile
+ framerate 25
+ hotspot 0.23
+ header {{0 {face parameter brow_raise} {1 0}} {1 {gube parameter y_rotation} {1 0}} {2 {face parameter eyelid} {1 0}} {3 {face parameter smile} {1 0}}}
+ data {
+  {0.1 0.55 0.02 0.09}
+  {0.1 0.55 0.02 0.09}
+  {0.1 0.54 0.01 0.09}
+  {0.11 0.53 0.01 0.1}
+  {0.12 0.52 0.0 0.12}
+  {0.12 0.51 0.0 0.13}
+  {0.13 0.51 0.0 0.14}
+  {0.13 0.51 0.0 0.15}
+  {0.13 0.51 0.0 0.15}
+ }
+}

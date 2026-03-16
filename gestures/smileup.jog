@@ -1,0 +1,17 @@
+return {
+ name smileup
+ framerate 25
+ hotspot 0.23
+ header {{0 {face parameter brow_raise} {1 0}} {1 {gube parameter y_rotation} {1 0}} {2 {eye parameter y_rotation} {1 0}} {3 {face parameter eyelid} {1 0}} {4 {face parameter smile} {1 0}}}
+ data {
+  {0.1 0.55 0.52 0.02 0.09}
+  {0.1 0.55 0.52 0.02 0.09}
+  {0.1 0.54 0.52 0.01 0.09}
+  {0.11 0.53 0.52 0.01 0.11}
+  {0.12 0.52 0.53 0.0 0.13}
+  {0.12 0.51 0.53 0.0 0.16}
+  {0.13 0.51 0.54 0.0 0.17}
+  {0.13 0.51 0.54 0.0 0.18}
+  {0.13 0.51 0.54 0.0 0.18}
+ }
+}

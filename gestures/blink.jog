@@ -1,0 +1,17 @@
+return {
+ name blink
+ framerate 25
+ hotspot 0.24
+ header {{0 {face parameter eyelid} {1 0}}}
+ data {
+  0.02
+  0.1
+  0.61
+  0.95
+  0.95
+  0.95
+  0.86
+  0.35
+  0.02
+ }
+}

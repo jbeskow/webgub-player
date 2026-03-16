@@ -289,6 +289,9 @@ class GubRenderer {
     this.playStart   = 0;
     this.playFrame   = 0;
 
+    this._jog        = null;  // active jog: { data, startTime, lastFrame }
+    this.gubeGroup   = null;  // Three.js Group for the 'gube' container surface
+
     this.onFrameUpdate  = null; // (frameIdx, total) => void
     this.onParamsUpdated = null; // () => void
 
@@ -328,6 +331,7 @@ class GubRenderer {
   _loop() {
     requestAnimationFrame(() => this._loop());
     if (this.playing) this._tickDat();
+    if (this._jog)    this._tickJog();
     this.controls.update();
     this.renderer.render(this.scene, this.camera);
   }
@@ -339,6 +343,8 @@ class GubRenderer {
     this.defSurfaces = [];
     this.eyeObjects  = [];
     this.allParams.clear();
+    this.gubeGroup   = null;
+    this._jog        = null;
 
     this._applyViewSettings(gubData);
     this._addLights(gubData);
@@ -406,6 +412,7 @@ class GubRenderer {
     const group = new THREE.Group();
     this._applyTransform(group, node);
     parentObj.add(group);
+    if (node.name === 'gube') this.gubeGroup = group;
 
     const isMirrorSide = (node.name === 'rightface' || node.name === 'righteye');
 
@@ -749,5 +756,45 @@ class GubRenderer {
 
     if (this.onFrameUpdate) this.onFrameUpdate(idx, this.datAnim.frames.length);
     if (this.onParamsUpdated) this.onParamsUpdated();
+  }
+
+  // ── JOG gesture playback ──────────────────────────────────────────────────
+  // Non-blocking: plays on top of any current state; ticked every rAF in _loop.
+  // Calling playJog while one is running cancels and replaces it immediately.
+  playJog(jogData) {
+    this._jog = { data: jogData, startTime: performance.now(), lastFrame: -1 };
+  }
+
+  stopJog() { this._jog = null; }
+
+  _tickJog() {
+    const jog = this._jog;
+    const frame = Math.floor((performance.now() - jog.startTime) * jog.data.framerate / 1000);
+    if (frame === jog.lastFrame) return;
+    if (frame >= jog.data.frames.length) { this._jog = null; return; }
+    jog.lastFrame = frame;
+
+    const vals = jog.data.frames[frame];
+    for (let i = 0; i < jog.data.channels.length; i++) {
+      const ch  = jog.data.channels[i];
+      const val = (vals[i] ?? 0) * ch.mult + ch.offset;
+      this._applyJogParam(ch.object, ch.paramName, val);
+    }
+    if (this.onParamsUpdated) this.onParamsUpdated();
+  }
+
+  _applyJogParam(object, paramName, val) {
+    if (object === 'face') {
+      this.setParameter(paramName, val);
+    } else if (object === 'eye') {
+      this.setParameter(`eye_eye_${paramName}`, val);
+    } else if (object === 'gube' && this.gubeGroup) {
+      // GUB rotation params (0–1 range, 0.5 = neutral).
+      // Map to ±90° around the corresponding Three.js axis.
+      const a = (val - 0.5) * Math.PI;
+      if      (paramName === 'y_rotation') this.gubeGroup.rotation.x = a;
+      else if (paramName === 'z_rotation') this.gubeGroup.rotation.y = a;
+      else if (paramName === 'x_rotation') this.gubeGroup.rotation.z = a;
+    }
   }
 }

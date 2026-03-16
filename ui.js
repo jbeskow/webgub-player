@@ -8,17 +8,20 @@ const transport = document.getElementById('transport');
 const timeline  = document.getElementById('timeline');
 const timeLabel = document.getElementById('time-label');
 const playBtn   = document.getElementById('play-btn');
-const openGub   = document.getElementById('open-gub-btn');
-const openDat   = document.getElementById('open-dat-btn');
-const openWav   = document.getElementById('open-wav-btn');
-const fileGub   = document.getElementById('file-gub');
-const fileDat   = document.getElementById('file-dat');
-const fileWav   = document.getElementById('file-wav');
-const resetBtn  = document.getElementById('reset-btn');
+const openGub       = document.getElementById('open-gub-btn');
+const openDat       = document.getElementById('open-dat-btn');
+const openWav       = document.getElementById('open-wav-btn');
+const fileGub       = document.getElementById('file-gub');
+const fileDat       = document.getElementById('file-dat');
+const fileWav       = document.getElementById('file-wav');
+const resetBtn      = document.getElementById('reset-btn');
+const modelSelect   = document.getElementById('model-select');
+const gestureBtns   = [...document.querySelectorAll('.gesture-btn')];
 
 const renderer  = new GubRenderer(canvas);
 const parser    = new GubParser();
 const datParser = new DatParser();
+const jogParser = new JogParser();
 
 let defaultValues = {};
 let sliderEls     = {};
@@ -92,6 +95,7 @@ function loadGub(text) {
   overlay.classList.add('hidden');
   openDat.disabled = false;
   openWav.disabled = false;
+  gestureBtns.forEach(b => b.disabled = false);
   buildSliders();
   setStatus('Model loaded – ' + renderer.defSurfaces.filter(e => !e.isMirror).length +
             ' def-surfaces, ' + renderer.allParams.size + ' parameters');
@@ -336,6 +340,50 @@ document.addEventListener('drop', e => {
     }
   }
 });
+
+// ── Model dropdown ─────────────────────────────────────────────────────────
+
+modelSelect.addEventListener('change', () => {
+  const url = modelSelect.value;
+  if (!url) return;
+  setStatus(`Loading ${url}…`);
+  fetch(url)
+    .then(r => { if (!r.ok) throw new Error(r.statusText); return r.text(); })
+    .then(text => loadGub(text))
+    .catch(e => setStatus('Model load error: ' + e.message, true))
+    .finally(() => { modelSelect.value = ''; });
+});
+
+// ── Gesture buttons ────────────────────────────────────────────────────────
+
+// Cache parsed jogs so re-clicking is instant
+const jogCache = {};
+
+function playGesture(btn) {
+  const url = btn.dataset.jog;
+  if (!url) return;
+
+  const run = jogData => {
+    renderer.playJog(jogData);
+    // Visual feedback: highlight button for the duration of the gesture
+    gestureBtns.forEach(b => b.classList.remove('playing'));
+    btn.classList.add('playing');
+    const dur = (jogData.frames.length / jogData.framerate) * 1000;
+    setTimeout(() => btn.classList.remove('playing'), dur);
+  };
+
+  if (jogCache[url]) { run(jogCache[url]); return; }
+
+  fetch(url)
+    .then(r => { if (!r.ok) throw new Error(r.statusText); return r.text(); })
+    .then(text => {
+      jogCache[url] = jogParser.parse(text);
+      run(jogCache[url]);
+    })
+    .catch(e => setStatus('Gesture error: ' + e.message, true));
+}
+
+gestureBtns.forEach(btn => btn.addEventListener('click', () => playGesture(btn)));
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 

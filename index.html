@@ -52,6 +52,42 @@
       min-width: 120px;
     }
 
+    /* ── model select ── */
+    #model-select {
+      padding: 3px 6px;
+      background: #2a2a2a;
+      color: #ddd;
+      border: 1px solid #555;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    /* ── gesture bar ── */
+    #gesturebar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      background: #161616;
+      border-bottom: 1px solid #2a2a2a;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+    #gesturebar span {
+      font-size: 11px;
+      color: #555;
+      margin-right: 4px;
+    }
+    .gesture-btn {
+      padding: 3px 10px;
+      font-size: 11px;
+      border-color: #444;
+      color: #bbb;
+    }
+    .gesture-btn:disabled { opacity: 0.3; }
+    .gesture-btn.playing  { background: #7c3aed; border-color: #8b5cf6; color: #fff; }
+
     /* ── main layout ── */
     #main {
       display: flex;
@@ -239,10 +275,28 @@
 <!-- Top bar -->
 <div id="topbar">
   <h1>GUB Player</h1>
+  <select id="model-select">
+    <option value="">— Load model —</option>
+    <option value="models/sven.gub">Sven</option>
+    <option value="models/kattis.gub">Kattis</option>
+  </select>
   <button class="btn" id="open-gub-btn">Open .gub…</button>
   <button class="btn" id="open-dat-btn" disabled>Open .dat…</button>
   <button class="btn" id="open-wav-btn" disabled>Open .wav…</button>
-  <span id="status">Drag &amp; drop a .gub file to start</span>
+  <span id="status">Select a model or drop a .gub file</span>
+</div>
+
+<!-- Gesture bar -->
+<div id="gesturebar">
+  <span>Gestures:</span>
+  <button class="btn gesture-btn" data-jog="gestures/neutral.jog"    disabled>Neutral</button>
+  <button class="btn gesture-btn" data-jog="gestures/blink.jog"      disabled>Blink</button>
+  <button class="btn gesture-btn" data-jog="gestures/blinkdouble.jog" disabled>Blink ×2</button>
+  <button class="btn gesture-btn" data-jog="gestures/smileup.jog"    disabled>Smile</button>
+  <button class="btn gesture-btn" data-jog="gestures/frowndown.jog"  disabled>Frown</button>
+  <button class="btn gesture-btn" data-jog="gestures/areyousure.jog" disabled>Hm?</button>
+  <button class="btn gesture-btn" data-jog="gestures/nod_double.jog" disabled>Nod</button>
+  <button class="btn gesture-btn" data-jog="gestures/lookup.jog"     disabled>Look up</button>
 </div>
 
 <!-- Main -->
@@ -307,6 +361,7 @@
 <!-- Application scripts -->
 <script src="gub-parser.js"></script>
 <script src="dat-parser.js"></script>
+<script src="jog-parser.js"></script>
 <script src="gub-renderer.js"></script>
 <script src="ui.js"></script>
 
