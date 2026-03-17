@@ -787,7 +787,12 @@ class GubRenderer {
     if (object === 'face') {
       this.setParameter(paramName, val);
     } else if (object === 'eye') {
-      this.setParameter(`eye_eye_${paramName}`, val);
+      // JOG eye values are normalised 0–1 over the parameter's full range.
+      // e.g. y_rotation range is [-50, 50] degrees, so 0.52 → 2° (neutral).
+      const key  = `eye_eye_${paramName}`;
+      const info = this.allParams.get(key);
+      const paramVal = info ? val * (info.max - info.min) + info.min : val;
+      this.setParameter(key, paramVal);
     } else if (object === 'gube' && this.gubeGroup) {
       // GUB rotation params (0–1 range, 0.5 = neutral).
       // Map to ±90° around the corresponding Three.js axis.
